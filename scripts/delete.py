@@ -2,10 +2,13 @@ import os
 from neo4j import GraphDatabase
 from utils import config
 from utils.cypher_loader import load_cypher_query
+from utils.config import NEO4J_DB
 
 BATCH_SIZE = 10000
 
-QUERIES=load_cypher_query("recreate_database.cypher").strip().splitlines()
+QUERIES=load_cypher_query("recreate_database.cypher") \
+    .replace("DB_NAME", NEO4J_DB) \
+    .strip().splitlines()
 
 def recreate_database(tx):
     for query in QUERIES:
@@ -19,9 +22,9 @@ def run():
     )
 
     with driver.session() as session:
-        print("Recreating database 'movies'...", end="")
+        print(f"Recreating database '{NEO4J_DB}'...", end="")
         session.execute_write(recreate_database)
-        print("\rRecreating database 'movies': Done!")
+        print(f"\rRecreating database '{NEO4J_DB}': Done!")
     
     driver.close()
 
