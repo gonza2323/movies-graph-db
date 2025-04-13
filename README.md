@@ -8,7 +8,9 @@ Para cargar la base de datos hay que realizar los siguientes pasos:
 
 3. En el directorio del proyecto, crear un entorno virtual de python con `python3 -m venv .venv`, activarlo con `source /.venv/bin/activate`, e instalar los requerimientos dentro del mismo con `pip install -r requirements.txt`.
 
-4. Finalmente, con el entorno activado, llamamos a los scripts que queramos ejecutar. Los scripts deben llamarse desde la carpeta del proyecto, con el flag `-m`, utilizando puntos en lugar de barras, y sin la extensión .py del script. Es decir, `python3 -m scripts.<nombre_script>`. Por ejemplo:
+4. Asegurarse de que está andando el DBMS en neo4j Desktop.
+
+5. Finalmente, con el entorno activado, llamamos a los scripts que queramos ejecutar. Los scripts deben llamarse desde la carpeta del proyecto, con el flag `-m`, utilizando puntos en lugar de barras, y sin la extensión .py del script. Es decir, `python3 -m scripts.<nombre_script>`. Por ejemplo:
 
     - `python3 -m scripts.load_titles` Carga las obras y los géneros en la base de datos (Tarda como 5-10 minutos). Ojo de no ejecutarlo más de una vez porque duplica todo. Chequear si ya existen los nodos  (usando MERGE en lugar de CREATE) hace que tarde una barbaridad, así que no lo hace.
 
