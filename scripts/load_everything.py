@@ -2,11 +2,13 @@ import os
 from scripts import load_titles
 from scripts import load_names
 from scripts import load_crew
+from scripts import load_principals
 
 def run():
     load_titles.run()
     load_names.run()
     load_crew.run()
+    load_principals.run()
 
 if __name__ == "__main__":
     filename = os.path.basename(__file__)
