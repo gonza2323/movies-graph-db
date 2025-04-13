@@ -1,0 +1,5 @@
+MATCH (n) DETACH DELETE n;
+
+DROP CONSTRAINT title_id_unique IF EXISTS;
+DROP CONSTRAINT name_id_unique IF EXISTS;
+DROP CONSTRAINT genre_type_unique IF EXISTS;

@@ -1,0 +1,12 @@
+
+CREATE CONSTRAINT title_id_unique IF NOT EXISTS
+FOR (t:Obra)
+REQUIRE t.id IS UNIQUE;
+
+CREATE CONSTRAINT name_id_unique IF NOT EXISTS
+FOR (p:Persona)
+REQUIRE p.id IS UNIQUE;
+
+CREATE CONSTRAINT genre_type_unique IF NOT EXISTS
+FOR (g:Genero)
+REQUIRE g.tipo IS UNIQUE;
