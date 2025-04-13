@@ -1,10 +1,12 @@
 import os
 from scripts import load_titles
 from scripts import load_names
+from scripts import load_crew
 
 def run():
     load_titles.run()
     load_names.run()
+    load_crew.run()
 
 if __name__ == "__main__":
     filename = os.path.basename(__file__)

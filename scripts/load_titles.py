@@ -43,7 +43,6 @@ def run():
         processed_rows = 0
 
         for row in reader:
-
             try:
                 processedRow = transform_row(row)
                 titleType=processedRow["titleType"]

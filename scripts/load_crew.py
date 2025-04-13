@@ -7,27 +7,24 @@ from utils.cypher_loader import load_cypher_query
 from utils import run_query
 
 BATCH_SIZE = 5000
-DATA_FILE = Path("data/name.basics.tsv")
-NAMES_QUERY = load_cypher_query("insert_names.cypher")
+DATA_FILE = Path("data/title.crew.tsv")
+CREW_QUERY = load_cypher_query("insert_crew.cypher")
 
 def transform_row(row):
     def clean(val, conv):
         return None if val == "\\N" else conv(val)
 
     return {
-        "id": int(row["nconst"][2:]) if row["nconst"].startswith("nm") else None,
-        "primaryName": clean(row["primaryName"], str),
-        "birthYear": clean(row["birthYear"], int),
-        "deathYear": clean(row["deathYear"], int),
-        "primaryProfession": clean(row["primaryProfession"], lambda val: [p.strip() for p in val.split(",") if p.strip()]),
-        "knownForTitles": clean(row["knownForTitles"], lambda val: [int(t[2:]) for t in val.split(",") if t])
+        "titleId": int(row["tconst"][2:]) if row["tconst"].startswith("tt") else None,
+        "directors": clean(row["directors"], lambda val: [int(d[2:]) for d in val.split(",") if d]),
+        "writers": clean(row["writers"], lambda val: [int(w[2:]) for w in val.split(",") if w])
     }
 
-def load_names(tx, batch):
-    tx.run(NAMES_QUERY, rows=batch)
+def load_crew(tx, batch):
+    tx.run(CREW_QUERY, rows=batch)
 
 def run():
-    run_query.run("create_title_id_constraint.cypher")
+    run_query.run("create_name_id_constraint.cypher")
 
     driver = GraphDatabase.driver(config.NEO4J_URI, auth=(config.NEO4J_USER, config.NEO4J_PASSWORD))
     total_rows = sum(1 for line in open(DATA_FILE, encoding="utf-8")) - 1
@@ -39,42 +36,27 @@ def run():
         processed_rows = 0
 
         for row in reader:
-
             try:
                 processedRow = transform_row(row)
             except Exception as e:
                 print(f"Error in row {processed_rows+1}: " + str(row))
                 raise
-            
-            if processedRow["id"] is None:
-                continue
 
             batch.append(processedRow)
             processed_rows += 1
 
             if len(batch) >= BATCH_SIZE:
-                session.execute_write(load_names, batch)
+                session.execute_write(load_crew, batch)
                 batch = []
                 percentage = (processed_rows / total_rows) * 100
                 print(f"\rProcessing {DATA_FILE.name} {int(percentage)}%", end="")
 
         if batch:
-            session.execute_write(load_names, batch)
+            session.execute_write(load_crew, batch)
 
         print(f"\rProcessing {DATA_FILE.name} Done    ")
 
     driver.close()
 
 if __name__ == "__main__":
-    filename = os.path.basename(__file__)
-    print(f"PRECAUCIÓN: Ejecutar {filename} cuando ya se han cargado los datos, creará datos duplicados.")
-    while True:
-        user_input = input("Quiere proceder? [y/n]: ").strip().lower()
-        if user_input in ("y", "yes"):
-            run()
-            break
-        elif user_input in ("n", "no"):
-            print("Cancelado.")
-            break
-        else:
-            print("Input inválido. Ingrese y(es) / n(o).")
+    run()
