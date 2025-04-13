@@ -1,0 +1,3 @@
+CREATE CONSTRAINT title_id_unique IF NOT EXISTS
+FOR (t:Obra)
+REQUIRE t.id IS UNIQUE;

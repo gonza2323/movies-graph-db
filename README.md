@@ -10,13 +10,17 @@ Para cargar la base de datos hay que realizar los siguientes pasos:
 
 4. Asegurarse de que está andando el DBMS en neo4j Desktop.
 
-5. Finalmente, con el entorno activado, llamamos a los scripts que queramos ejecutar. Los scripts deben llamarse desde la carpeta del proyecto, con el flag `-m`, utilizando puntos en lugar de barras, y sin la extensión .py del script. Es decir, `python3 -m scripts.<nombre_script>`. Por ejemplo:
+5. Finalmente, con el entorno activado, llamamos a los scripts que queramos ejecutar. Los scripts deben llamarse desde la carpeta del proyecto, con el flag `-m`, utilizando puntos en lugar de barras, y sin la extensión .py del script. Es decir, `python3 -m scripts.<nombre_script>`. Algunos ejemplos son:
 
-    - `python3 -m scripts.load_titles` Carga las obras y los géneros en la base de datos (Tarda como 5-10 minutos). Ojo de no ejecutarlo más de una vez porque duplica todo. Chequear si ya existen los nodos  (usando MERGE en lugar de CREATE) hace que tarde una barbaridad, así que no lo hace.
+    - `python3 -m scripts.load_everything` Carga todos los .tsv cuyos scripts de carga hayan sido implementados. Cuando hacemos uno nuevo, lo agregamos al archivo. Ojo de no ejecutarlo más de una vez porque duplica todo. Chequear si ya existen los nodos  (usando MERGE en lugar de CREATE) hace que tarde una barbaridad, así que no lo hace.
 
-    - `python3 -m scripts.delete` Borra absolutamente todo. Aunque creo que es más rápido borrar la base de datos y volverla a armar. Tarda unos minutos. El neo4j browser tampoco se banca esta operación si no se hace de a tandas.
+    - `python3 -m scripts.load_titles` Carga las obras y los géneros en la base de datos (Tarda como 5-10 minutos). Tener el mismo cuidado que con `load_everything.py`, duplica nodos ya cargados.
+
+    - `python3 -m scripts.delete` Borra y recrea la base de datos.
 
     - `python3 -m scripts.amount` Muestra la cantidad de relaciones, nodos, y distintos tipos de nodos. Esta se podría hacer en el neo4j browser pero es más cómodo desde la consola.
+
+    - `utils.run_query` No se llamaría directamente desde la consola, aunque se puede. Se puede usar para ejecutar rápidamente una query que no requiera parámetros de ningún tipo.
 
 ## Funcionamiento
 

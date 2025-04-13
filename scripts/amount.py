@@ -8,8 +8,13 @@ def get_counts(tx):
     nodes = tx.run("MATCH (x) RETURN count(x) AS count")
     titles = tx.run("MATCH (x:Obra) RETURN count(x) AS count")
     genres = tx.run("MATCH (x:Genero) RETURN count(x) AS count")
+    people = tx.run("MATCH (x:Persona) RETURN count(x) AS count")
 
-    return relationships.single()["count"], nodes.single()["count"], titles.single()["count"], genres.single()["count"]
+    return relationships.single()["count"],\
+        nodes.single()["count"],\
+        titles.single()["count"],\
+        genres.single()["count"],\
+        people.single()["count"]
 
 
 def run():
@@ -23,7 +28,8 @@ def run():
         print(f"""Relationships: {counts[0]},
 Nodes: {counts[1]},
 Titles: {counts[2]},
-Genres: {counts[3]}""")
+Genres: {counts[3]},
+People: {counts[4]}""")
 
     driver.close()
 

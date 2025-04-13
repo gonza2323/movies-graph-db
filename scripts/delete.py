@@ -1,73 +1,40 @@
+import os
 from neo4j import GraphDatabase
 from utils import config
+from utils.cypher_loader import load_cypher_query
 
 BATCH_SIZE = 10000
 
-def drop_constraints(tx):
-    tx.run("DROP CONSTRAINT title_id_unique IF EXISTS")
-    tx.run("DROP CONSTRAINT name_id_unique IF EXISTS")
-    tx.run("DROP CONSTRAINT genre_type_unique IF EXISTS")
+QUERIES=load_cypher_query("recreate_database.cypher").strip().splitlines()
 
-
-def delete_relationships_batch(tx, batch_size):
-    result = tx.run(
-        """
-        MATCH ()-[r]->() LIMIT $batch_size DELETE r
-        RETURN count(r) AS deleted
-        """,
-        batch_size=batch_size
-    )
-    return result.single()["deleted"]
-
-
-def delete_nodes_batch(tx, batch_size):
-    result = tx.run(
-        """
-        MATCH (n) LIMIT $batch_size DELETE n
-        RETURN count(n) AS deleted
-        """,
-        batch_size=batch_size
-    )
-    return result.single()["deleted"]
-
+def recreate_database(tx):
+    for query in QUERIES:
+        tx.run(query)
 
 def run():
     driver = GraphDatabase.driver(
         config.NEO4J_URI,
+        database="system",
         auth=(config.NEO4J_USER, config.NEO4J_PASSWORD)
     )
 
     with driver.session() as session:
-        print("Dropping constraints...", end="")
-        session.execute_write(drop_constraints)
-        print("\rDropping constraints: Done!")
-        
-        
-        deleted_total = 0
-        print("Deleting relationships... 0", end="")
-        
-        while True:
-            deleted_count = session.execute_write(delete_relationships_batch, BATCH_SIZE)
-            deleted_total += deleted_count
-            print(f"\rDeleting relationships.. {deleted_total}", end="")
-            if deleted_count == 0:
-                break
-        print(f"\rDeleting relationships.. {deleted_total} Done!")
-        
-        
-        deleted_total = 0
-        print("Deleting nodes... 0", end="")
-        
-        while True:
-            deleted_count = session.execute_write(delete_nodes_batch, BATCH_SIZE)
-            deleted_total += deleted_count
-            print(f"\rDeleting nodes.. {deleted_total}", end="")
-            if deleted_count == 0:
-                break
-        print(f"\rDeleting nodes.. {deleted_total} Done!")
-
-
+        print("Recreating database 'movies'...", end="")
+        session.execute_write(recreate_database)
+        print("\rRecreating database 'movies': Done!")
+    
     driver.close()
 
 if __name__ == "__main__":
-    run()
+    filename = os.path.basename(__file__)
+    print(f"PRECAUCIÓN: Ejecutar {filename} borrará todas las restricciones, relaciones y nodos en la base de datos.")
+    while True:
+        user_input = input("Quiere proceder? [y/n]: ").strip().lower()
+        if user_input in ("y", "yes"):
+            run()
+            break
+        elif user_input in ("n", "no"):
+            print("Cancelado.")
+            break
+        else:
+            print("Input inválido. Ingrese y(es) / n(o).")
