@@ -4,30 +4,25 @@ from neo4j import GraphDatabase
 from pathlib import Path
 from utils import config
 from utils.cypher_loader import load_cypher_query
-from utils import query
 
 BATCH_SIZE = 5000
-DATA_FILE = Path("data/title.principals.tsv")
-CREW_QUERY = load_cypher_query("insert_principals.cypher")
+DATA_FILE = Path("data/title.ratings.tsv")
+CREW_QUERY = load_cypher_query("insert_ratings.cypher")
 
 def transform_row(row):
     def clean(val, conv):
         return None if val == "\\N" else conv(val)
 
     return {
-        "titleId": int(row["tconst"][2:]) if row["tconst"].startswith("tt") else None,
-        "nameId": int(row["nconst"][2:]) if row["nconst"].startswith("nm") else None,
-        "category": clean(row["category"], str),
-        "job": clean(row["job"], str),
-        "characters": clean(row["characters"], lambda val: [c.strip() for c in val.split(",") if c.strip()])
+        "id": int(row["tconst"][2:]) if row["tconst"].startswith("tt") else None,
+        "averageRating": clean(row["averageRating"], float),
+        "numVotes": clean(row["numVotes"], int),
     }
 
-def load_principals(tx, batch):
+def load_ratings(tx, batch):
     tx.run(CREW_QUERY, rows=batch)
 
 def run():
-    query.run("create_name_id_constraint.cypher")
-
     driver = GraphDatabase.driver(config.NEO4J_URI, auth=(config.NEO4J_USER, config.NEO4J_PASSWORD))
     total_rows = sum(1 for line in open(DATA_FILE, encoding="utf-8")) - 1
     batch = []
@@ -48,28 +43,17 @@ def run():
             processed_rows += 1
 
             if len(batch) >= BATCH_SIZE:
-                session.execute_write(load_principals, batch)
+                session.execute_write(load_ratings, batch)
                 batch = []
                 percentage = (processed_rows / total_rows) * 100
                 print(f"\rProcessing {DATA_FILE.name} {int(percentage)}%", end="")
 
         if batch:
-            session.execute_write(load_principals, batch)
+            session.execute_write(load_ratings, batch)
 
         print(f"\rProcessing {DATA_FILE.name} Done    ")
 
     driver.close()
 
 if __name__ == "__main__":
-    filename = os.path.basename(__file__)
-    print(f"PRECAUCIÓN: Ejecutar {filename} cuando ya se han cargado roles creará datos duplicados.")
-    while True:
-        user_input = input("Quiere proceder? [y/n]: ").strip().lower()
-        if user_input in ("y", "yes"):
-            run()
-            break
-        elif user_input in ("n", "no"):
-            print("Cancelado.")
-            break
-        else:
-            print("Input inválido. Ingrese y(es) / n(o).")
+    run()

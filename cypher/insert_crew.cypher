@@ -6,4 +6,4 @@ WITH o,
 
 UNWIND people AS personData
 MATCH (p:Persona {id: personData.id})
-MERGE (p)-[:TRABAJO_EN {tipo: personData.role}]->(o)
+MERGE (p)-[:TRABAJA_EN {tipo: personData.role}]->(o)

@@ -9,4 +9,4 @@ CREATE (p:Persona {
 WITH p, row.knownForTitles AS titleIds
 UNWIND titleIds AS titleId
 MATCH (o:Obra) WHERE o.id = titleId
-MERGE (p)-[:CONOCIDA_POR]->(o)
+CREATE (p)-[:CONOCIDA_POR]->(o)

@@ -4,7 +4,7 @@ from neo4j import GraphDatabase
 from pathlib import Path
 from utils import config
 from utils.cypher_loader import load_cypher_query
-from utils import run_query
+from utils import query
 
 BATCH_SIZE = 5000
 DATA_FILE = Path("data/title.basics.tsv")
@@ -31,7 +31,7 @@ def load_titles(tx, titleTypeTag, batch):
     tx.run(final_query, rows=batch)
 
 def run():
-    run_query.run("create_genre_type_constraint.cypher")
+    query.run("create_genre_type_constraint.cypher")
 
     driver = GraphDatabase.driver(config.NEO4J_URI, auth=(config.NEO4J_USER, config.NEO4J_PASSWORD))
     total_rows = sum(1 for line in open(DATA_FILE, encoding="utf-8")) - 1
@@ -77,7 +77,7 @@ def run():
 
 if __name__ == "__main__":
     filename = os.path.basename(__file__)
-    print(f"PRECAUCIÓN: Ejecutar {filename} cuando ya se han cargado los datos, creará datos duplicados.")
+    print(f"PRECAUCIÓN: Ejecutar {filename} cuando ya se han cargado obras creará datos duplicados.")
     while True:
         user_input = input("Quiere proceder? [y/n]: ").strip().lower()
         if user_input in ("y", "yes"):

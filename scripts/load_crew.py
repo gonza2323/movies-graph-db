@@ -4,7 +4,6 @@ from neo4j import GraphDatabase
 from pathlib import Path
 from utils import config
 from utils.cypher_loader import load_cypher_query
-from utils import run_query
 
 BATCH_SIZE = 5000
 DATA_FILE = Path("data/title.crew.tsv")
@@ -24,8 +23,6 @@ def load_crew(tx, batch):
     tx.run(CREW_QUERY, rows=batch)
 
 def run():
-    run_query.run("create_name_id_constraint.cypher")
-
     driver = GraphDatabase.driver(config.NEO4J_URI, auth=(config.NEO4J_USER, config.NEO4J_PASSWORD))
     total_rows = sum(1 for line in open(DATA_FILE, encoding="utf-8")) - 1
     batch = []

@@ -4,31 +4,26 @@ from neo4j import GraphDatabase
 from pathlib import Path
 from utils import config
 from utils.cypher_loader import load_cypher_query
-from utils import query
 
 BATCH_SIZE = 5000
-DATA_FILE = Path("data/name.basics.tsv")
-NAMES_QUERY = load_cypher_query("insert_names.cypher")
+DATA_FILE = Path("data/title.episode.tsv")
+CREW_QUERY = load_cypher_query("insert_episodes.cypher")
 
 def transform_row(row):
     def clean(val, conv):
         return None if val == "\\N" else conv(val)
 
     return {
-        "id": int(row["nconst"][2:]) if row["nconst"].startswith("nm") else None,
-        "primaryName": clean(row["primaryName"], str),
-        "birthYear": clean(row["birthYear"], int),
-        "deathYear": clean(row["deathYear"], int),
-        "primaryProfession": clean(row["primaryProfession"], lambda val: [p.strip() for p in val.split(",") if p.strip()]),
-        "knownForTitles": clean(row["knownForTitles"], lambda val: [int(t[2:]) for t in val.split(",") if t])
+        "episodeId": int(row["tconst"][2:]) if row["tconst"].startswith("tt") else None,
+        "seriesId": int(row["parentTconst"][2:]) if row["tconst"].startswith("tt") else None,
+        "seasonNumber": clean(row["seasonNumber"], int),
+        "episodeNumber": clean(row["episodeNumber"], int),
     }
 
-def load_names(tx, batch):
-    tx.run(NAMES_QUERY, rows=batch)
+def load_episodes(tx, batch):
+    tx.run(CREW_QUERY, rows=batch)
 
 def run():
-    query.run("create_title_id_constraint.cypher")
-
     driver = GraphDatabase.driver(config.NEO4J_URI, auth=(config.NEO4J_USER, config.NEO4J_PASSWORD))
     total_rows = sum(1 for line in open(DATA_FILE, encoding="utf-8")) - 1
     batch = []
@@ -39,27 +34,23 @@ def run():
         processed_rows = 0
 
         for row in reader:
-
             try:
                 processedRow = transform_row(row)
             except Exception as e:
                 print(f"Error in row {processed_rows+1}: " + str(row))
                 raise
-            
-            if processedRow["id"] is None:
-                continue
 
             batch.append(processedRow)
             processed_rows += 1
 
             if len(batch) >= BATCH_SIZE:
-                session.execute_write(load_names, batch)
+                session.execute_write(load_episodes, batch)
                 batch = []
                 percentage = (processed_rows / total_rows) * 100
                 print(f"\rProcessing {DATA_FILE.name} {int(percentage)}%", end="")
 
         if batch:
-            session.execute_write(load_names, batch)
+            session.execute_write(load_episodes, batch)
 
         print(f"\rProcessing {DATA_FILE.name} Done    ")
 
@@ -67,7 +58,7 @@ def run():
 
 if __name__ == "__main__":
     filename = os.path.basename(__file__)
-    print(f"PRECAUCIÓN: Ejecutar {filename} cuando ya se han cargado personas creará datos duplicados.")
+    print(f"PRECAUCIÓN: Ejecutar {filename} cuando ya se han cargado episodios creará datos duplicados.")
     while True:
         user_input = input("Quiere proceder? [y/n]: ").strip().lower()
         if user_input in ("y", "yes"):

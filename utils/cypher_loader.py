@@ -1,4 +1,3 @@
-
 from utils.config import CYPHER_PATH
 from os import path
 

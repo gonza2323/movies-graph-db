@@ -4,16 +4,18 @@ from utils import config
 from utils.cypher_loader import load_cypher_query
 
 
-def run_query(tx, QUERY):
+def _run_query(tx, QUERY):
     tx.run(QUERY)
 
 def run(cypher_file_name):
     driver = GraphDatabase.driver(config.NEO4J_URI, auth=(config.NEO4J_USER, config.NEO4J_PASSWORD))
-    QUERY = load_cypher_query(cypher_file_name)
+    queries = load_cypher_query(cypher_file_name).split(';')
 
     with driver.session() as session:
         print(f"Processing query {cypher_file_name}...", end="")
-        session.execute_write(run_query, QUERY)
+        for query in queries:
+            if query.strip():
+                session.execute_write(_run_query, query + ';')
         print(f"\rProcessing query {cypher_file_name} Done")
 
     driver.close()
