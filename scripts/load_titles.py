@@ -1,3 +1,5 @@
+from datetime import timedelta
+import time
 import csv
 import os
 from neo4j import GraphDatabase
@@ -31,14 +33,15 @@ def load_titles(tx, titleTypeTag, batch):
     tx.run(final_query, rows=batch)
 
 def run():
+    startTime = time.time()
     query.run("create_genre_type_constraint.cypher")
 
+    print(f"Processing {DATA_FILE.name} 0%", end="")
     driver = GraphDatabase.driver(config.NEO4J_URI, auth=(config.NEO4J_USER, config.NEO4J_PASSWORD))
     total_rows = sum(1 for line in open(DATA_FILE, encoding="utf-8")) - 1
     batchesPerType = {}
 
     with driver.session() as session, open(DATA_FILE, encoding="utf-8") as f:
-        print(f"Processing {DATA_FILE.name} 0%", end="")
         reader = csv.DictReader(f, delimiter='\t', quoting=csv.QUOTE_NONE)
         processed_rows = 0
 
@@ -71,7 +74,8 @@ def run():
             if batch:
                 session.execute_write(load_titles, titleType, batch)
 
-        print(f"\rProcessing {DATA_FILE.name} Done    ")
+        elapsed = time.time() - startTime
+        print(f"\rProcessing {DATA_FILE.name} Done in {timedelta(seconds=round(elapsed))}")
 
     driver.close()
 

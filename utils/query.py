@@ -1,3 +1,5 @@
+from datetime import timedelta
+import time
 import sys
 from neo4j import GraphDatabase
 from utils import config
@@ -8,15 +10,19 @@ def _run_query(tx, QUERY):
     tx.run(QUERY)
 
 def run(cypher_file_name):
+    startTime = time.time()
+    print(f"Processing query {cypher_file_name}...", end="")
+    
     driver = GraphDatabase.driver(config.NEO4J_URI, auth=(config.NEO4J_USER, config.NEO4J_PASSWORD))
     queries = load_cypher_query(cypher_file_name).split(';')
 
     with driver.session() as session:
-        print(f"Processing query {cypher_file_name}...", end="")
         for query in queries:
             if query.strip():
                 session.execute_write(_run_query, query + ';')
-        print(f"\rProcessing query {cypher_file_name} Done")
+        
+    elapsed = time.time() - startTime
+    print(f"\rProcessing query {cypher_file_name} Done in {timedelta(seconds=round(elapsed))}")
 
     driver.close()
 

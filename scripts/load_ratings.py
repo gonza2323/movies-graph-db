@@ -1,4 +1,5 @@
-import os
+from datetime import timedelta
+import time
 import csv
 from neo4j import GraphDatabase
 from pathlib import Path
@@ -23,12 +24,14 @@ def load_ratings(tx, batch):
     tx.run(CREW_QUERY, rows=batch)
 
 def run():
+    startTime = time.time()
+    print(f"Processing {DATA_FILE.name} 0%", end="")
+    
     driver = GraphDatabase.driver(config.NEO4J_URI, auth=(config.NEO4J_USER, config.NEO4J_PASSWORD))
     total_rows = sum(1 for line in open(DATA_FILE, encoding="utf-8")) - 1
     batch = []
 
     with driver.session() as session, open(DATA_FILE, encoding="utf-8") as f:
-        print(f"Processing {DATA_FILE.name} 0%", end="")
         reader = csv.DictReader(f, delimiter='\t', quoting=csv.QUOTE_NONE)
         processed_rows = 0
 
@@ -51,7 +54,8 @@ def run():
         if batch:
             session.execute_write(load_ratings, batch)
 
-        print(f"\rProcessing {DATA_FILE.name} Done    ")
+        elapsed = time.time() - startTime
+        print(f"\rProcessing {DATA_FILE.name} Done in {timedelta(seconds=round(elapsed))}")
 
     driver.close()
 
