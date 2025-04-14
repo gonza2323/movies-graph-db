@@ -1,6 +1,7 @@
 import os
 from datetime import timedelta
 import time
+import json
 import csv
 from neo4j import GraphDatabase
 from pathlib import Path
@@ -17,11 +18,11 @@ def transform_row(row):
         return None if val == "\\N" else conv(val)
 
     return {
-        "titleId": int(row["tconst"][2:]) if row["tconst"].startswith("tt") else None,
-        "nameId": int(row["nconst"][2:]) if row["nconst"].startswith("nm") else None,
+        "titleId": int(row["tconst"][2:]),
+        "nameId": int(row["nconst"][2:]),
         "category": clean(row["category"], str),
         "job": clean(row["job"], str),
-        "characters": clean(row["characters"], lambda val: [c.strip() for c in val.split(",") if c.strip()])
+        "character": clean(row["characters"], lambda cs: "|".join(json.loads(cs)))
     }
 
 def load_principals(tx, batch):
