@@ -27,7 +27,7 @@ def transform_row(row):
         "id": int(row["tconst"][2:]) if row["tconst"].startswith("tt") else None,
         "averageRating": r,
         "numVotes": v,
-        "weightedRating": (v / (v + m)) * r + (m / (v + m)) * C if r is not None and v is not None else 0
+        "weightedRating": (v / (v + m)) * r + (m / (v + m)) * C if r is not None and v is not None else None
     }
 
 
