@@ -1,4 +1,4 @@
-UNWIND $ROWS AS row
+UNWIND $rows AS row
 
 MATCH (episode:Play {id: row.episodeId})
 MATCH (series:Play {id: row.seriesId})
