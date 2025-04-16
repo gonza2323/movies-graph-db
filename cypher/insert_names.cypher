@@ -4,8 +4,8 @@ CREATE (p:Person {
   id:                row.id,
   primaryName:       row.primaryName,
   birthYear:         row.birthYear,
-  deathYear:         row.deathYear,
-  primaryProfession: row.primaryProfession
+  deathYear:         row.deathYear
+ // ,primaryProfession: row.primaryProfession
 })
 WITH p, row.knownForTitles AS titleIds
 UNWIND titleIds AS titleId

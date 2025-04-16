@@ -3,7 +3,7 @@ UNWIND $ROWS AS row
 CREATE (t:Play:TitleType {
   id:             row.id,
   primaryTitle:   row.primaryTitle,
-  originalTitle:  row.originalTitle,
+  // originalTitle:  row.originalTitle,
   isAdult:        row.isAdult,
   startYear:      row.startYear,
   endYear:        row.endYear,
