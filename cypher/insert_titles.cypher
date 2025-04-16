@@ -10,5 +10,5 @@ CREATE (t:Play:TitleType {
 })
 WITH t, row.genres AS genres
 UNWIND genres AS genre
-MERGE (g:Genre {tipo: genre})
+MERGE (g:Genre {type: genre})
 CREATE (t)-[:HAS_GENRE]->(g)
