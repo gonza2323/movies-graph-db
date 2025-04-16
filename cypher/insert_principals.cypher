@@ -1,4 +1,4 @@
-UNWIND $ROWS AS row
+UNWIND $rows AS row
 
 MATCH (o:Play {id: row.titleId})
 MATCH (p:Person {id: row.nameId})
