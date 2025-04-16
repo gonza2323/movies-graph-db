@@ -1,3 +1,3 @@
 CREATE CONSTRAINT title_id_unique IF NOT EXISTS
-FOR (t:Obra)
+FOR (t:Play)
 REQUIRE t.id IS UNIQUE;

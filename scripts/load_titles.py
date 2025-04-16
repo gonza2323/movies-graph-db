@@ -1,16 +1,19 @@
-from datetime import timedelta
-import time
 import csv
 import os
-from neo4j import GraphDatabase
+import time
+from datetime import timedelta
 from pathlib import Path
+
+from neo4j import GraphDatabase
+
 from utils import config
-from utils.cypher_loader import load_cypher_query
 from utils import query
+from utils.cypher_loader import load_cypher_query
 
 BATCH_SIZE = 5000
 DATA_FILE = Path("data/title.basics.tsv")
 TITLES_QUERY = load_cypher_query("insert_titles.cypher")
+
 
 def transform_row(row):
     def clean(val, conv):
@@ -28,9 +31,11 @@ def transform_row(row):
         "genres": clean(row["genres"], lambda val: [g.strip() for g in val.split(",") if g.strip() and g != "\\N"])
     }
 
+
 def load_titles(tx, titleTypeTag, batch):
     final_query = TITLES_QUERY.replace("TitleType", titleTypeTag, 1)
     tx.run(final_query, rows=batch)
+
 
 def run():
     startTime = time.time()
@@ -48,17 +53,17 @@ def run():
         for row in reader:
             try:
                 processedRow = transform_row(row)
-                titleType=processedRow["titleType"]
+                titleType = processedRow["titleType"]
             except Exception as e:
-                print(f"Error in row {processed_rows+1}: " + str(row))
+                print(f"Error in row {processed_rows + 1}: " + str(row))
                 raise
-            
+
             if processedRow["id"] is None:
                 continue
 
             if titleType not in batchesPerType:
                 batchesPerType[titleType] = []
-            
+
             batchesPerType[titleType].append(processedRow)
 
             processed_rows += 1
@@ -68,7 +73,6 @@ def run():
                 batchesPerType[titleType] = []
                 percentage = (processed_rows / total_rows) * 100
                 print(f"\rProcessing {DATA_FILE.name} {int(percentage)}%", end="")
-            
 
         for titleType, batch in batchesPerType.items():
             if batch:
@@ -78,6 +82,7 @@ def run():
         print(f"\rProcessing {DATA_FILE.name} Done in {timedelta(seconds=round(elapsed))}")
 
     driver.close()
+
 
 if __name__ == "__main__":
     filename = os.path.basename(__file__)

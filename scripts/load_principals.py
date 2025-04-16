@@ -1,17 +1,20 @@
-import os
-from datetime import timedelta
-import time
-import json
 import csv
-from neo4j import GraphDatabase
+import json
+import os
+import time
+from datetime import timedelta
 from pathlib import Path
+
+from neo4j import GraphDatabase
+
 from utils import config
-from utils.cypher_loader import load_cypher_query
 from utils import query
+from utils.cypher_loader import load_cypher_query
 
 BATCH_SIZE = 5000
 DATA_FILE = Path("data/title.principals.tsv")
 CREW_QUERY = load_cypher_query("insert_principals.cypher")
+
 
 def transform_row(row):
     def clean(val, conv):
@@ -25,8 +28,10 @@ def transform_row(row):
         "character": clean(row["characters"], lambda cs: "|".join(json.loads(cs)))
     }
 
+
 def load_principals(tx, batch):
     tx.run(CREW_QUERY, rows=batch)
+
 
 def run():
     startTime = time.time()
@@ -45,7 +50,7 @@ def run():
             try:
                 processedRow = transform_row(row)
             except Exception as e:
-                print(f"Error in row {processed_rows+1}: " + str(row))
+                print(f"Error in row {processed_rows + 1}: " + str(row))
                 raise
 
             batch.append(processedRow)
@@ -64,6 +69,7 @@ def run():
         print(f"\rProcessing {DATA_FILE.name} Done in {timedelta(seconds=round(elapsed))}")
 
     driver.close()
+
 
 if __name__ == "__main__":
     filename = os.path.basename(__file__)

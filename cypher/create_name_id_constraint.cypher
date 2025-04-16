@@ -1,3 +1,3 @@
 CREATE CONSTRAINT name_id_unique IF NOT EXISTS
-FOR (p:Persona)
+FOR (p:Person)
 REQUIRE p.id IS UNIQUE;

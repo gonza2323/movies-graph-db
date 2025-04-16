@@ -1,3 +1,3 @@
 CREATE CONSTRAINT genre_type_unique IF NOT EXISTS
-FOR (g:Genero)
+FOR (g:Genre)
 REQUIRE g.tipo IS UNIQUE;

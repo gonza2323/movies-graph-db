@@ -1,16 +1,19 @@
-import os
-from datetime import timedelta
-import time
 import csv
-from neo4j import GraphDatabase
+import os
+import time
+from datetime import timedelta
 from pathlib import Path
+
+from neo4j import GraphDatabase
+
 from utils import config
-from utils.cypher_loader import load_cypher_query
 from utils import query
+from utils.cypher_loader import load_cypher_query
 
 BATCH_SIZE = 5000
 DATA_FILE = Path("data/name.basics.tsv")
 NAMES_QUERY = load_cypher_query("insert_names.cypher")
+
 
 def transform_row(row):
     def clean(val, conv):
@@ -21,12 +24,15 @@ def transform_row(row):
         "primaryName": clean(row["primaryName"], str),
         "birthYear": clean(row["birthYear"], int),
         "deathYear": clean(row["deathYear"], int),
-        "primaryProfession": clean(row["primaryProfession"], lambda val: [p.strip() for p in val.split(",") if p.strip()]),
+        "primaryProfession": clean(row["primaryProfession"],
+                                   lambda val: [p.strip() for p in val.split(",") if p.strip()]),
         "knownForTitles": clean(row["knownForTitles"], lambda val: [int(t[2:]) for t in val.split(",") if t])
     }
 
+
 def load_names(tx, batch):
     tx.run(NAMES_QUERY, rows=batch)
+
 
 def run():
     startTime = time.time()
@@ -46,9 +52,9 @@ def run():
             try:
                 processedRow = transform_row(row)
             except Exception as e:
-                print(f"Error in row {processed_rows+1}: " + str(row))
+                print(f"Error in row {processed_rows + 1}: " + str(row))
                 raise
-            
+
             if processedRow["id"] is None:
                 continue
 
@@ -68,6 +74,7 @@ def run():
         print(f"\rProcessing {DATA_FILE.name} Done in {timedelta(seconds=round(elapsed))}")
 
     driver.close()
+
 
 if __name__ == "__main__":
     filename = os.path.basename(__file__)

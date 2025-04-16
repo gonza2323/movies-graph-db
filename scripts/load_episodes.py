@@ -1,15 +1,18 @@
-import os
-from datetime import timedelta
-import time
 import csv
-from neo4j import GraphDatabase
+import os
+import time
+from datetime import timedelta
 from pathlib import Path
+
+from neo4j import GraphDatabase
+
 from utils import config
 from utils.cypher_loader import load_cypher_query
 
 BATCH_SIZE = 5000
 DATA_FILE = Path("data/title.episode.tsv")
 CREW_QUERY = load_cypher_query("insert_episodes.cypher")
+
 
 def transform_row(row):
     def clean(val, conv):
@@ -22,13 +25,15 @@ def transform_row(row):
         "episodeNumber": clean(row["episodeNumber"], int),
     }
 
+
 def load_episodes(tx, batch):
     tx.run(CREW_QUERY, rows=batch)
+
 
 def run():
     startTime = time.time()
     print(f"Processing {DATA_FILE.name} 0%", end="")
-    
+
     driver = GraphDatabase.driver(config.NEO4J_URI, auth=(config.NEO4J_USER, config.NEO4J_PASSWORD))
     total_rows = sum(1 for line in open(DATA_FILE, encoding="utf-8")) - 1
     batch = []
@@ -41,7 +46,7 @@ def run():
             try:
                 processedRow = transform_row(row)
             except Exception as e:
-                print(f"Error in row {processed_rows+1}: " + str(row))
+                print(f"Error in row {processed_rows + 1}: " + str(row))
                 raise
 
             batch.append(processedRow)
@@ -60,6 +65,7 @@ def run():
         print(f"\rProcessing {DATA_FILE.name} Done in {timedelta(seconds=round(elapsed))}")
 
     driver.close()
+
 
 if __name__ == "__main__":
     filename = os.path.basename(__file__)
