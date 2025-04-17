@@ -12,22 +12,51 @@ BATCH_SIZE = 5000
 DATA_FILE = Path("data/title.ratings.tsv")
 CREW_QUERY = load_cypher_query("insert_ratings.cypher")
 
+VOTES_THRESHOLD = 2000
+AVERAGE_RATING = None
+
+
+def clean(val, conv):
+    return None if val == "\\N" else conv(val)
+
+def get_avg_rating_and_total_rows():
+    total = 0
+    totalVotes = 0
+    totalRows = 0
+
+    with open(DATA_FILE, encoding="utf-8") as f:
+        reader = csv.DictReader(f, delimiter='\t', quoting=csv.QUOTE_NONE)
+
+        for row in reader:
+            rating = clean(row["averageRating"], float)
+            numVotes = clean(row["numVotes"], int)
+
+            if rating is not None and numVotes is not None:
+                total += rating * numVotes
+                totalVotes += numVotes
+            
+            totalRows += 1
+        
+    return total / totalVotes, totalRows
 
 def transform_row(row):
-    def clean(val, conv):
-        return None if val == "\\N" else conv(val)
-
-    C = 5  # Constant for the average rating
-    m = 5000  # Minimum votes threshold
+    C = AVERAGE_RATING  
+    m = VOTES_THRESHOLD
 
     r = clean(row["averageRating"], float)
     v = clean(row["numVotes"], int)
+
+    if r is not None and v is not None:
+        w = (v / (v + m)) * r + (m / (v + m)) * C
+        w = round(w, 1)
+    else:
+        w = None
 
     return {
         "id": int(row["tconst"][2:]) if row["tconst"].startswith("tt") else None,
         "averageRating": r,
         "numVotes": v,
-        "weightedRating": (v / (v + m)) * r + (m / (v + m)) * C if r is not None and v is not None else None
+        "weightedRating": w
     }
 
 
@@ -39,8 +68,10 @@ def run():
     startTime = time.time()
     print(f"Processing {DATA_FILE.name} 0%", end="")
 
+    global AVERAGE_RATING
+    AVERAGE_RATING, total_rows = get_avg_rating_and_total_rows()
+
     driver = GraphDatabase.driver(config.NEO4J_URI, auth=(config.NEO4J_USER, config.NEO4J_PASSWORD))
-    total_rows = sum(1 for line in open(DATA_FILE, encoding="utf-8")) - 1
     batch = []
 
     with driver.session() as session, open(DATA_FILE, encoding="utf-8") as f:
@@ -68,8 +99,6 @@ def run():
 
         elapsed = time.time() - startTime
         print(f"\rProcessing {DATA_FILE.name} Done in {timedelta(seconds=round(elapsed))}")
-
-    driver.close()
 
 
 if __name__ == "__main__":
