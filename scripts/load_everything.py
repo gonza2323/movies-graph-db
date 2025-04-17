@@ -15,8 +15,8 @@ def run():
     
     load_titles.run()
     load_names.run()
-    query.run("create_indexes.cypher")
     load_ratings.run()
+    query.run("create_indexes.cypher")
     load_episodes.run()
     load_principals.run()
     load_crew.run()
