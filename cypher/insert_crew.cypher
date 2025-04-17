@@ -1,5 +1,5 @@
 UNWIND $rows AS row
-MATCH (o:Play {id: row.titleId})
+MATCH (o:Title {id: row.titleId})
 WITH o, 
      [id IN row.directors | {id: id, role: 'director'}] + 
      [id IN row.writers | {id: id, role: 'writer'}] AS people

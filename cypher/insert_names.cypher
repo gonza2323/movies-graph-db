@@ -9,6 +9,6 @@ CREATE (p:Person {
 })
 WITH p, row.knownForTitles AS titleIds
 UNWIND titleIds AS titleId
-MATCH (o:Play)
+MATCH (o:Title)
   WHERE o.id = titleId
 CREATE (p)-[:KNOWN_FOR]->(o)

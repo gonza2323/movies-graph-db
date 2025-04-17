@@ -1,6 +1,6 @@
 UNWIND $rows AS row
 
-MATCH (t:Play {id: row.id})
+MATCH (t:Title {id: row.id})
 SET
   t.averageRating = row.averageRating,
   t.numVotes = row.numVotes,

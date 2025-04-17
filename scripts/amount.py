@@ -6,7 +6,7 @@ from utils import config
 def get_counts(tx):
     relationships = tx.run("MATCH ()-[r]->() RETURN count(r) AS count")
     nodes = tx.run("MATCH (x) RETURN count(x) AS count")
-    titles = tx.run("MATCH (x:Play) RETURN count(x) AS count")
+    titles = tx.run("MATCH (x:Title) RETURN count(x) AS count")
     genres = tx.run("MATCH (x:Genre) RETURN count(x) AS count")
     people = tx.run("MATCH (x:Person) RETURN count(x) AS count")
 

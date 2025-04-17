@@ -1,8 +1,9 @@
 UNWIND $rows AS row
 
-CREATE (t:Play:TitleType {
+CREATE (t:Title:TitleType {
   id:             row.id,
   primaryTitle:   row.primaryTitle,
+  originalTitle:  row.originalTitle,
   isAdult:        row.isAdult,
   startYear:      row.startYear,
   endYear:        row.endYear,
