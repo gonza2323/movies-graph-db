@@ -4,17 +4,19 @@ from utils import config
 
 
 def get_counts(tx):
-    relationships = tx.run("MATCH ()-[r]->() RETURN count(r) AS count")
-    nodes = tx.run("MATCH (x) RETURN count(x) AS count")
-    titles = tx.run("MATCH (x:Title) RETURN count(x) AS count")
-    genres = tx.run("MATCH (x:Genre) RETURN count(x) AS count")
-    people = tx.run("MATCH (x:Person) RETURN count(x) AS count")
+    labels_query = tx.run("CALL db.labels()")
+    labels = [record["label"] for record in labels_query]
 
-    return relationships.single()["count"], \
-        nodes.single()["count"], \
-        titles.single()["count"], \
-        genres.single()["count"], \
-        people.single()["count"]
+    results = {}
+
+    results["relationships"] = tx.run("MATCH ()-[r]->() RETURN count(r) AS count").single()["count"]
+    results["nodes"] = tx.run("MATCH (x) RETURN count(x) AS count").single()["count"]
+
+    for label in labels:
+        results[label] = tx.run(f"MATCH (x:{label}) RETURN count(x) AS count").single()["count"]
+    
+    return results
+
 
 
 def run():
@@ -25,13 +27,18 @@ def run():
 
     with driver.session() as session:
         counts = session.execute_write(get_counts)
-        print(f"""Relationships: {counts[0]},
-Nodes: {counts[1]},
-Titles: {counts[2]},
-Genres: {counts[3]},
-People: {counts[4]}""")
+    
+    sorted_counts = sorted(counts.items(), key=lambda x: x[1], reverse=True)
 
-    driver.close()
+    max_key_length = max(len(key) for key, count in sorted_counts)
+
+    print(f"{'Key'.ljust(max_key_length)}  {'Count'}")
+    print("-" * (max_key_length + 12))
+
+    for key, count in sorted_counts:
+        capitalized_key = key[0].upper() + key[1:]
+        print(f"{capitalized_key.ljust(max_key_length)}  {count}")
+
 
 
 if __name__ == "__main__":
