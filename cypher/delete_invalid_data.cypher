@@ -1,0 +1,1 @@
+MATCH (n:tvPilot) DETACH DELETE n;

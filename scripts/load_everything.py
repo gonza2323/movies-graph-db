@@ -14,6 +14,7 @@ def run():
     print("Loading data into database")
     
     load_titles.run()
+    query.run("delete_invalid_data.cypher")
     load_names.run()
     load_ratings.run()
     query.run("create_indexes.cypher")
