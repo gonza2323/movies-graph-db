@@ -1,29 +1,29 @@
 import os
-import time
 from datetime import timedelta
-
-from scripts import load_episodes
-from scripts import load_names
-from scripts import load_principals
-from scripts import load_ratings
+import time
 from scripts import load_titles
+from scripts import load_names
+from scripts import load_crew
+from scripts import load_principals
+from scripts import load_episodes
+from scripts import load_ratings
 from utils import query
-
 
 def run():
     startTime = time.time()
     print("Loading data into database")
-
+    
     load_titles.run()
     load_names.run()
     query.run("create_indexes.cypher")
     load_ratings.run()
     load_episodes.run()
     load_principals.run()
-
+    load_crew.run()
+    
     elapsed = time.time() - startTime
     print(f"Finished loading data in {timedelta(seconds=round(elapsed))}")
-
+    
 
 if __name__ == "__main__":
     filename = os.path.basename(__file__)
