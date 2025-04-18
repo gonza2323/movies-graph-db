@@ -24,7 +24,6 @@ def transform_row(row):
         "titleType": clean(row["titleType"], str),
         "primaryTitle": clean(row["primaryTitle"], str),
         "originalTitle": clean(row["originalTitle"], str),
-        "isAdult": clean(row["isAdult"], lambda x: bool(int(x))),
         "startYear": clean(row["startYear"], int),
         "endYear": clean(row["endYear"], int),
         "runtimeMinutes": clean(row["runtimeMinutes"], int),
